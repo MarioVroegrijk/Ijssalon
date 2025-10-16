@@ -1,2 +1,4 @@
-print("Hello Mario")
-print("Älles goed met je")
+a = "Maandag"
+b = "Dinsdag"
+c = "Woensdag"
+print(a,b,c, sep="-")
