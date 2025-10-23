@@ -4,16 +4,16 @@ import json
 from doctr.models import ocr_predictor
 from pdf2image import convert_from_path
 
-def ensure_folder_exists(path):
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
-
 def default_converter(o):
     from datetime import date
     if isinstance(o, date):
         return o.isoformat()
 
 def process_pdf(file_path, predictor):
+    """
+    Process a PDF file using DocTR OCR predictor.
+    Returns a list of dictionaries, één per pagina.
+    """
     pages = convert_from_path(file_path)
     results = []
 
@@ -33,16 +33,16 @@ def process_pdf(file_path, predictor):
 
 def save_extracted_data(file_name, data, input_filename):
     output_folder = os.path.join('temp/json_export', input_filename)
-    ensure_folder_exists(output_folder)
+    os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, f"{file_name}.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, default=default_converter)
 
 def main(limit, input_filename):
-    predictor = ocr_predictor(pretrained=True)
-    folder_path = os.path.join('temp/files_split', input_filename)
+    predictor = ocr_predictor(pretrained=True)  # Downloaded model gebruikt lokaal
 
-    ensure_folder_exists(os.path.join('temp/json_export', input_filename))
+    folder_path = os.path.join('temp/files_split', input_filename)
+    os.makedirs(os.path.join('temp/json_export', input_filename), exist_ok=True)
 
     processed_pages = 0
     for file_name in os.listdir(folder_path):

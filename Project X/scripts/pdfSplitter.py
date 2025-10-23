@@ -3,27 +3,26 @@ import PyPDF2
 import sys
 import shutil
 
-def ensure_folder_exists(path):
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
-
+# Split the PDF files into a PDF file per page
 def split_pdf(filename, folder):
     if folder:
         path = f'input/{folder}/{filename}'
     else:
         path = f'input/{filename}'
+    
     pdfFileObj = open(path, 'rb')
     reader = PyPDF2.PdfReader(pdfFileObj)
 
     print(f'Processing {filename}')
 
-    split_folder = os.path.join('temp/files_split', filename)
-    ensure_folder_exists(split_folder)
-
     for pageNum in range(len(reader.pages)):
+        output_folder = f'temp/files_split/{filename}'
+        os.makedirs(output_folder, exist_ok=True)
+        
         pdfWriter = PyPDF2.PdfWriter()
         pdfWriter.add_page(reader.pages[pageNum])
-        pdfOutputFile = open(f'{split_folder}/{filename.split(".")[0]}_page{pageNum + 1}.pdf', 'wb')
+        
+        pdfOutputFile = open(f'{output_folder}/{filename.split(".")[0]}_page{str(pageNum + 1)}.pdf', 'wb')
         pdfWriter.write(pdfOutputFile)
         pdfOutputFile.close()
 
@@ -34,15 +33,15 @@ def copy_pdf(filename, folder):
         path = f'input/{folder}/{filename}'
     else:
         path = f'input/{filename}'
-
-    split_folder = os.path.join('temp/files_split', filename)
-    ensure_folder_exists(split_folder)
-    shutil.copy2(path, f'{split_folder}/{filename}')
+    
+    output_folder = f'temp/files_split/{filename}'
+    os.makedirs(output_folder, exist_ok=True)
+    shutil.copy2(path, f'{output_folder}/{filename}')
 
 def main(input_filename, split, folder=""):
-    if split == 'y':
+    if split.lower() == 'y':
         split_pdf(input_filename, folder)
-    elif split == 'n':
+    elif split.lower() == 'n':
         copy_pdf(input_filename, folder)
     else:
         print('Invalid input. Please enter y or n.')
