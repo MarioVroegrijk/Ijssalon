@@ -1,7 +1,11 @@
-mijn_lijst = ["Toyota", "Mazda", "Volkswagen", "Jeep"]
-mijn_lijst.append("Suzuki")
+# Maak de list
+autos = ["Toyota", "Mazda", "Volkswagen", "Jeep"]
 
-for item in mijn_lijst:
-    print(f"Wij verkopen het merk {item}")
+# Print de list
+print(autos)
 
-        
+# Voeg het element 'Suzuki' toe aan de list
+autos.append("Suzuki")
+
+# Print de list opnieuw
+print(autos)
