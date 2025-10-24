@@ -1,8 +1,7 @@
 import os
-import sys
-import json
-from doctr.models import ocr_predictor
+from doctr.models import ocr_predictor, db_resnet50, crnn_vgg16_bn
 from pdf2image import convert_from_path
+import json
 
 def default_converter(o):
     from datetime import date
@@ -10,10 +9,6 @@ def default_converter(o):
         return o.isoformat()
 
 def process_pdf(file_path, predictor):
-    """
-    Process a PDF file using DocTR OCR predictor.
-    Returns a list of dictionaries, één per pagina.
-    """
     pages = convert_from_path(file_path)
     results = []
 
@@ -39,7 +34,20 @@ def save_extracted_data(file_name, data, input_filename):
         json.dump(data, f, indent=4, default=default_converter)
 
 def main(limit, input_filename):
-    predictor = ocr_predictor(pretrained=True)  # Downloaded model gebruikt lokaal
+    # Paden naar lokale modellen
+    det_model_path = os.path.join("models", "fast_base-688a8b34.pt")
+    reco_model_path = os.path.join("models", "vitstr_small.pt")  # voeg toe als apart bestand
+
+    # Laad detectiemodel volledig offline
+    det_model = db_resnet50(pretrained=False)
+    det_model.from_pretrained(det_model_path, map_location="cpu")
+
+    # Laad herkenningsmodel volledig offline
+    reco_model = crnn_vgg16_bn(pretrained=False)
+    reco_model.from_pretrained(reco_model_path, map_location="cpu")
+
+    # Predictor volledig offline
+    predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
 
     folder_path = os.path.join('temp/files_split', input_filename)
     os.makedirs(os.path.join('temp/json_export', input_filename), exist_ok=True)
@@ -57,13 +65,3 @@ def main(limit, input_filename):
                 processed_pages += 1
             except Exception as e:
                 print(f"Error processing {file_name}: {e}")
-
-if __name__ == "__main__":
-    if len(sys.argv) == 3:
-        limit = int(sys.argv[1])
-        input_filename = sys.argv[2]
-    else:
-        input_filename = input("Enter the filename: ")
-        limit = int(input("Enter the limit of pages to process: "))
-
-    main(limit=limit, input_filename=input_filename)
